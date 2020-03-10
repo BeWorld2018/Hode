@@ -7,7 +7,7 @@
 #include <getopt.h>
 #include <sys/stat.h>
 
-#include "3p/inih/ini.h"
+#include "inih/ini.h"
 
 #include "game.h"
 #include "menu.h"
@@ -17,6 +17,12 @@
 #include "resource.h"
 #include "system.h"
 #include "video.h"
+
+#ifdef __MORPHOS__
+#include <unistd.h>
+unsigned long __stack = 2000000;
+__attribute__ ((section(".text"))) UBYTE VString[] = "$VER: Hode 0.2.8 (30.01.2020) port by BeWorld\r\n";
+#endif
 
 static const char *_title = "Heart of Darkness";
 
@@ -31,8 +37,8 @@ static const char *_usage =
 	"  --checkpoint=NUM  Start at checkpoint NUM\n"
 ;
 
-static bool _fullscreen = false;
-static bool _widescreen = false;
+static bool _fullscreen = true;
+static bool _widescreen = true;
 
 static const bool _runBenchmark = false;
 static bool _runMenu = true;
@@ -57,11 +63,13 @@ static void setupAudio(Game *g) {
 	cb.userdata = g;
 	g_system->startAudio(cb);
 }
-
+#ifdef __MORPHOS__
+static const char *_defaultDataPath = "PROGDIR:DATA";
+static const char *_defaultSavePath = "PROGDIR:DATA";
+#else
 static const char *_defaultDataPath = ".";
-
 static const char *_defaultSavePath = ".";
-
+#endif
 static const char *_levelNames[] = {
 	"rock",
 	"fort",

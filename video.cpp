@@ -6,7 +6,15 @@
 #include "video.h"
 #include "mdec.h"
 #include "system.h"
+/*#define INT8_MAX 127
+#define INT16_MAX 32767
+#define INT32_MAX 2147483647
+#define INT64_MAX 9223372036854775807LL
 
+#define INT8_MIN -128
+#define INT16_MIN -32768
+#define INT32_MIN (-INT32_MAX-1)
+#define INT64_MIN (-INT64_MAX-1)*/
 static const bool kUseShadowColorLut = false;
 
 Video::Video() {

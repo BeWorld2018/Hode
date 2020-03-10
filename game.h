@@ -174,7 +174,7 @@ struct Game {
 	int32_t _mstVars[kMaxVars];
 	uint32_t _mstFlags;
 	int _clipBoxOffsetX, _clipBoxOffsetY;
-	Task *_currentTask;
+	_Task *_currentTask;
 	int _mstOp54Counter;
 	int _mstOp56Counter;
 	uint8_t _mstOp54Table[32];
@@ -188,10 +188,10 @@ struct Game {
 	uint8_t _andyActionKeysFlags;
 	int _executeMstLogicCounter;
 	int _executeMstLogicPrevCounter;
-	Task _tasksTable[kMaxTasks];
-	Task *_tasksList;
-	Task *_monsterObjects1TasksList;
-	Task *_monsterObjects2TasksList;
+	_Task _tasksTable[kMaxTasks];
+	_Task *_tasksList;
+	_Task *_monsterObjects1TasksList;
+	_Task *_monsterObjects2TasksList;
 	int _mstAndyLevelPrevPosX;
 	int _mstAndyLevelPrevPosY;
 	int _mstAndyLevelPosX;
@@ -219,7 +219,7 @@ struct Game {
 	int _mstCurrentPosX, _mstCurrentPosY;
 	int _mstBoundingBoxesCount;
 	MstBoundingBox _mstBoundingBoxesTable[kMaxBoundingBoxes];
-	Task *_mstCurrentTask;
+	_Task *_mstCurrentTask;
 	MstCollision _mstCollisionTable[2][32]; // 0:facingRight, 1:facingLeft
 	int _wormHoleSpritesCount;
 	WormHoleSprite _wormHoleSpritesTable[6];
@@ -389,24 +389,24 @@ struct Game {
 	bool mstUpdateInRange(MstMonsterAction *m48);
 	bool addChasingMonster(MstMonsterAction *m48, uint8_t flag);
 	void mstMonster1ClearChasingMonster(MonsterObject1 *m);
-	void mstTaskSetMonster1BehaviorState(Task *t, MonsterObject1 *m, int num);
-	int mstTaskStopMonsterObject1(Task *t);
+	void mstTaskSetMonster1BehaviorState(_Task *t, MonsterObject1 *m, int num);
+	int mstTaskStopMonsterObject1(_Task *t);
 	void mstMonster1SetScreenPosition(MonsterObject1 *m);
 	bool mstMonster1SetWalkingBounds(MonsterObject1 *m);
 	bool mstMonster1UpdateWalkPath(MonsterObject1 *m);
 	void mstMonster2InitFirefly(MonsterObject2 *m);
 	void mstMonster2ResetData(MonsterObject2 *m);
 	uint32_t mstMonster1GetNextWalkCode(MonsterObject1 *m);
-	int mstTaskSetNextWalkCode(Task *t);
+	int mstTaskSetNextWalkCode(_Task *t);
 
 	void mstBoundingBoxClear(MonsterObject1 *m, int dir);
 	int mstBoundingBoxCollides1(int num, int x1, int y1, int x2, int y2) const;
 	int mstBoundingBoxUpdate(int num, int monster1Index, int x1, int y1, int x2, int y2);
 	int mstBoundingBoxCollides2(int monster1Index, int x1, int y1, int x2, int y2) const;
 
-	void mstTaskSetMonster2ScreenPosition(Task *t);
+	void mstTaskSetMonster2ScreenPosition(_Task *t);
 	int getMstDistance(int y, const AndyShootData *p) const;
-	void mstTaskUpdateScreenPosition(Task *t);
+	void mstTaskUpdateScreenPosition(_Task *t);
 	void shuffleMstMonsterActionIndex(MstMonsterActionIndex *p);
 
 	void initMstCode();
@@ -422,8 +422,8 @@ struct Game {
 	void mstMonster1MoveTowardsGoal1(MonsterObject1 *m);
 	bool mstMonster1TestGoalDirection(MonsterObject1 *m);
 	void mstMonster1MoveTowardsGoal2(MonsterObject1 *m);
-	int mstTaskStopMonster1(Task *t, MonsterObject1 *m);
-	int mstTaskUpdatePositionActionDirection(Task *t, MonsterObject1 *m);
+	int mstTaskStopMonster1(_Task *t, MonsterObject1 *m);
+	int mstTaskUpdatePositionActionDirection(_Task *t, MonsterObject1 *m);
 	int mstMonster1FindWalkPathRect(MonsterObject1 *m, MstWalkPath *walkPath, int x, int y);
 	bool mstTestActionDirection(MonsterObject1 *m, int num);
 	bool lvlObjectCollidesAndy1(LvlObject *o, int type) const;
@@ -432,74 +432,74 @@ struct Game {
 	bool lvlObjectCollidesAndy3(LvlObject *o, int type) const;
 	bool mstCollidesByFlags(MonsterObject1 *m, uint32_t flags);
 	bool mstMonster1Collide(MonsterObject1 *m, const uint8_t *p);
-	int mstUpdateTaskMonsterObject1(Task *t);
-	int mstUpdateTaskMonsterObject2(Task *t);
+	int mstUpdateTaskMonsterObject1(_Task *t);
+	int mstUpdateTaskMonsterObject2(_Task *t);
 	void mstUpdateRefPos();
 	void mstUpdateMonstersRect();
-	void mstRemoveMonsterObject2(Task *t, Task **tasksList);
-	void mstTaskAttack(Task *t, uint32_t codeData, uint8_t flags);
-	void mstRemoveMonsterObject1(Task *t, Task **tasksList);
-	void mstOp26_removeMstTaskScreen(Task **tasksList, int screenNum);
-	void mstOp27_removeMstTaskScreenType(Task **tasksList, int screenNum, int type);
-	int mstOp49_setMovingBounds(int a, int b, int c, int d, int screen, Task *t, int num);
+	void mstRemoveMonsterObject2(_Task *t, _Task **tasksList);
+	void mstTaskAttack(_Task *t, uint32_t codeData, uint8_t flags);
+	void mstRemoveMonsterObject1(_Task *t, _Task **tasksList);
+	void mstOp26_removeMstTaskScreen(_Task **tasksList, int screenNum);
+	void mstOp27_removeMstTaskScreenType(_Task **tasksList, int screenNum, int type);
+	int mstOp49_setMovingBounds(int a, int b, int c, int d, int screen, _Task *t, int num);
 	void mstOp52();
 	bool mstHasMonsterInRange(const MstMonsterAction *m, uint8_t flag);
 	void mstOp53(MstMonsterAction *m);
 	void mstOp54();
-	int mstOp56_specialAction(Task *t, int code, int num);
+	int mstOp56_specialAction(_Task *t, int code, int num);
 	void mstOp57_addWormHoleSprite(int x, int y, int screenNum);
-	void mstOp58_addLvlObject(Task *t, int num);
+	void mstOp58_addLvlObject(_Task *t, int num);
 	void mstOp59_addShootSpecialPowers(int x, int y, int screenNum, int state, uint16_t flags);
 	void mstOp59_addShootFireball(int x, int y, int screenNum, int type, int state, uint16_t flags);
-	void mstTaskResetMonster1WalkPath(Task *t);
+	void mstTaskResetMonster1WalkPath(_Task *t);
 	bool mstSetCurrentPos(MonsterObject1 *m, int x, int y);
 	void mstMonster1SetGoalHorizontal(MonsterObject1 *m);
 	void mstResetCollisionTable();
-	void mstTaskRestart(Task *t);
+	void mstTaskRestart(_Task *t);
 	bool mstMonster1CheckLevelBounds(MonsterObject1 *m, int x, int y, uint8_t dir);
-	int mstTaskResetMonster1Direction(Task *t);
-	int mstTaskInitMonster1Type1(Task *t);
-	int mstTaskInitMonster1Type2(Task *t, int flag);
-	void mstOp67_addMonster(Task *t, int y1, int y2, int x1, int x2, int screen, int type, int o_flags1, int o_flags2, int arg1C, int arg20, int arg24);
-	void mstOp68_addMonsterGroup(Task *t, const uint8_t *p, int a, int b, int c, int d);
-	int mstTaskSetActionDirection(Task *t, int num, int value);
+	int mstTaskResetMonster1Direction(_Task *t);
+	int mstTaskInitMonster1Type1(_Task *t);
+	int mstTaskInitMonster1Type2(_Task *t, int flag);
+	void mstOp67_addMonster(_Task *t, int y1, int y2, int x1, int x2, int screen, int type, int o_flags1, int o_flags2, int arg1C, int arg20, int arg24);
+	void mstOp68_addMonsterGroup(_Task *t, const uint8_t *p, int a, int b, int c, int d);
+	int mstTaskSetActionDirection(_Task *t, int num, int value);
 
-	// Task list
-	Task *findFreeTask();
-	Task *createTask(const uint8_t *codeData);
-	void updateTask(Task *t, int num, const uint8_t *codeData);
-	void resetTask(Task *t, const uint8_t *codeData);
-	void removeTask(Task **tasksList, Task *t);
-	void appendTask(Task **tasksList, Task *t);
+	// _Task list
+	_Task *findFreeTask();
+	_Task *createTask(const uint8_t *codeData);
+	void updateTask(_Task *t, int num, const uint8_t *codeData);
+	void resetTask(_Task *t, const uint8_t *codeData);
+	void removeTask(_Task **_TasksList, _Task *t);
+	void appendTask(_Task **_TasksList, _Task *t);
 
-	// Task storage
-	int getTaskVar(Task *t, int index, int type) const;
-	void setTaskVar(Task *t, int index, int type, int value);
-	int getTaskAndyVar(int index, Task *t) const;
-	int getTaskOtherVar(int index, Task *t) const;
-	int getTaskFlag(Task *t, int index, int type) const;
+	// _Task storage
+	int getTaskVar(_Task *t, int index, int type) const;
+	void setTaskVar(_Task *t, int index, int type, int value);
+	int getTaskAndyVar(int index, _Task *t) const;
+	int getTaskOtherVar(int index, _Task *t) const;
+	int getTaskFlag(_Task *t, int index, int type) const;
 
-	// Task.run functions
-	int mstTask_main(Task *t);
-	int mstTask_wait1(Task *t);
-	int mstTask_wait2(Task *t);
-	int mstTask_wait3(Task *t);
-	int mstTask_idle(Task *t);
-	int mstTask_mstOp231(Task *t);
-	int mstTask_mstOp232(Task *t);
-	int mstTask_mstOp233(Task *t);
-	int mstTask_mstOp234(Task *t);
-	int mstTask_monsterWait1(Task *t);
-	int mstTask_monsterWait2(Task *t);
-	int mstTask_monsterWait3(Task *t);
-	int mstTask_monsterWait4(Task *t);
-	int mstTask_monsterWait5(Task *t);
-	int mstTask_monsterWait6(Task *t);
-	int mstTask_monsterWait7(Task *t);
-	int mstTask_monsterWait8(Task *t);
-	int mstTask_monsterWait9(Task *t);
-	int mstTask_monsterWait10(Task *t);
-	int mstTask_monsterWait11(Task *t);
+	// _Task.run functions
+	int mstTask_main(_Task *t);
+	int mstTask_wait1(_Task *t);
+	int mstTask_wait2(_Task *t);
+	int mstTask_wait3(_Task *t);
+	int mstTask_idle(_Task *t);
+	int mstTask_mstOp231(_Task *t);
+	int mstTask_mstOp232(_Task *t);
+	int mstTask_mstOp233(_Task *t);
+	int mstTask_mstOp234(_Task *t);
+	int mstTask_monsterWait1(_Task *t);
+	int mstTask_monsterWait2(_Task *t);
+	int mstTask_monsterWait3(_Task *t);
+	int mstTask_monsterWait4(_Task *t);
+	int mstTask_monsterWait5(_Task *t);
+	int mstTask_monsterWait6(_Task *t);
+	int mstTask_monsterWait7(_Task *t);
+	int mstTask_monsterWait8(_Task *t);
+	int mstTask_monsterWait9(_Task *t);
+	int mstTask_monsterWait10(_Task *t);
+	int mstTask_monsterWait11(_Task *t);
 
 	// sound.cpp
 	bool _sssDisabled;

@@ -12,15 +12,27 @@
 #include <stdlib.h>
 #include <assert.h>
 
-#ifdef _WIN32
+
+#if defined(_WIN32) 
+
 #define le16toh(x) x
 #define le32toh(x) x
 #define htole16(x) x
 #define htole32(x) x
 static const bool kByteSwapData = false; // no byteswap needed on little endian
 #else
-#include <endian.h>
-static const bool kByteSwapData = (__BYTE_ORDER == __BIG_ENDIAN);
+//#include <endian.h>
+//static const bool kByteSwapData = true ; // (__BYTE_ORDER == __BIG_ENDIAN);
+#endif
+
+#if defined(__MORPHOS__)
+#include <SDL.h>	
+#define le16toh(x) SDL_SwapLE16(x)
+#define le32toh(x) SDL_SwapLE32(x)
+#define htole16(x) SDL_Swap16(x)
+#define htole32(x) SDL_Swap32(x)
+static const bool kByteSwapData = true;
+
 #endif
 
 #define ARRAYSIZE(a) (sizeof(a)/sizeof(a[0]))

@@ -33,7 +33,7 @@ void error(const char *msg, ...) {
 	va_start(va, msg);
 	vsprintf(buf, msg, va);
 	va_end(va);
-	fprintf(stderr, "ERROR: %s!\n", buf);
+	//fprintf(stderr, "ERROR: %s!\n", buf);
 #ifdef __ANDROID__
 	__android_log_print(ANDROID_LOG_ERROR, LOG_TAG, "%s", buf);
 #endif
@@ -46,7 +46,7 @@ void warning(const char *msg, ...) {
 	va_start(va, msg);
 	vsprintf(buf, msg, va);
 	va_end(va);
-	fprintf(stderr, "WARNING: %s!\n", buf);
+	//fprintf(stderr, "WARNING: %s!\n", buf);
 #ifdef __ANDROID__
 	__android_log_print(ANDROID_LOG_WARN, LOG_TAG, "%s", buf);
 #endif

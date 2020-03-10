@@ -1,7 +1,7 @@
 
 #include "scaler.h"
 extern "C" {
-#include "3p/libxbr-standalone/filters.h"
+#include "libxbr-standalone/filters.h"
 }
 
 static bool _xbr_init;

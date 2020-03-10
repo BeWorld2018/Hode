@@ -350,7 +350,7 @@ struct MstCollision {
 	uint32_t count; // 0x80
 }; // sizeof == 132
 
-struct Task;
+struct _Task;
 
 struct MstWalkCode;
 struct MstWalkPath;
@@ -413,7 +413,7 @@ struct MonsterObject1 {
 	int32_t previousDyPos; // 0xB8 _yMstPos2
 	int32_t unkBC; // 0xBC _xMstPos1
 	int32_t unkC0; // 0xC0 _yMstPos1
-	Task *task; // 0xC4
+	_Task *task; // 0xC4
 	uint8_t rnd_m49[4]; // 0xC8
 	uint8_t rnd_m35[4]; // 0xCC
 	MstWalkCode *walkCode; // 0xD0
@@ -450,12 +450,12 @@ struct MonsterObject2 {
 	uint8_t vPosIndex; // 39
 	uint8_t hDir; // 3A
 	uint8_t vDir; // 3B
-	Task *task; // 0x3C
+	_Task *task; // 0x3C
 }; // sizeof == 64
 
-struct Task {
+struct _Task {
 	const uint8_t *codeData;
-	Task *prevPtr, *nextPtr; // 4,8
+	_Task *prevPtr, *nextPtr; // 4,8
 	MonsterObject1 *monster1; // 0xC
 	MonsterObject2 *monster2; // 0x10
 	int32_t localVars[8]; // 0x14
@@ -463,8 +463,8 @@ struct Task {
 	uint8_t state; // 0x35
 	int16_t arg1; // 0x36 delay/counter/type
 	uint32_t arg2; // 0x38  num/index
-	int (Game::*run)(Task *t); // 0x3C
-	Task *child; // 0x40
+	int (Game::*run)(_Task *t); // 0x3C
+	_Task *child; // 0x40
 }; // sizeof == 0x44
 
 #endif // DEFS_H__

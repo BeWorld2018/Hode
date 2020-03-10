@@ -52,6 +52,7 @@ struct System_SDL2 : System {
 	int _keyMappingsCount;
 	AudioCallback _audioCb;
 	uint8_t _gammaLut[256];
+	
 	SDL_GameController *_controller;
 	SDL_Joystick *_joystick;
 
@@ -120,7 +121,8 @@ void System_SDL2::init(const char *title, int w, int h, bool fullscreen, bool wi
 	prepareScaledGfx(title, fullscreen, widescreen, yuv);
 	_joystick = 0;
 	_controller = 0;
-	const int count = SDL_NumJoysticks();
+	
+    const int count = SDL_NumJoysticks();
 	if (count > 0) {
 		SDL_GameControllerAddMappingsFromFile("gamecontrollerdb.txt");
 		for (int i = 0; i < count; ++i) {
@@ -135,6 +137,8 @@ void System_SDL2::init(const char *title, int w, int h, bool fullscreen, bool wi
 			if (_joystick) {
 				fprintf(stdout, "Using joystick '%s'", SDL_JoystickName(_joystick));
 				break;
+			}else{
+				fprintf(stdout, "Error joystick '%s'", SDL_GetError());
 			}
 		}
 	}
@@ -432,6 +436,7 @@ void System_SDL2::updateScreen(bool drawWidescreen) {
 
 void System_SDL2::processEvents() {
 	SDL_Event ev;
+
 	pad.prevMask = pad.mask;
 	while (SDL_PollEvent(&ev)) {
 		switch (ev.type) {
@@ -700,14 +705,20 @@ void System_SDL2::setupDefaultKeyMappings() {
 
 	addKeyMapping(SDL_SCANCODE_RETURN,   SYS_INP_JUMP);
 	addKeyMapping(SDL_SCANCODE_LCTRL,    SYS_INP_RUN);
-	addKeyMapping(SDL_SCANCODE_F,        SYS_INP_RUN);
-//	addKeyMapping(SDL_SCANCODE_LALT,     SYS_INP_JUMP);
+	addKeyMapping(SDL_SCANCODE_F,    SYS_INP_RUN);
+//	addKeyMapping(SDL_SCANCODE_LALT,        SYS_INP_JUMP);
 	addKeyMapping(SDL_SCANCODE_G,        SYS_INP_JUMP);
 	addKeyMapping(SDL_SCANCODE_LSHIFT,   SYS_INP_SHOOT);
 	addKeyMapping(SDL_SCANCODE_H,        SYS_INP_SHOOT);
 	addKeyMapping(SDL_SCANCODE_D,        SYS_INP_SHOOT | SYS_INP_RUN);
 	addKeyMapping(SDL_SCANCODE_SPACE,    SYS_INP_SHOOT | SYS_INP_RUN);
+
+#ifdef __MORPHOS__
+// add somes keys
 	addKeyMapping(SDL_SCANCODE_ESCAPE,   SYS_INP_ESC);
+	addKeyMapping(SDL_SCANCODE_RCTRL,    SYS_INP_RUN);
+    addKeyMapping(SDL_SCANCODE_RSHIFT,   SYS_INP_SHOOT);
+	#endif
 }
 
 void System_SDL2::updateKeys(PlayerInput *inp) {
@@ -740,7 +751,11 @@ void System_SDL2::prepareScaledGfx(const char *caption, bool fullscreen, bool wi
 		SDL_SetWindowIcon(_window, icon);
 		SDL_FreeSurface(icon);
 	}
+	#ifdef __MORPHOS__
+	_renderer = SDL_CreateRenderer(_window, -1, SDL_RENDERER_SOFTWARE);
+	#else
 	_renderer = SDL_CreateRenderer(_window, -1, SDL_RENDERER_ACCELERATED);
+	#endif
 	SDL_RenderSetLogicalSize(_renderer, windowW, windowH);
 	SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1");
 
