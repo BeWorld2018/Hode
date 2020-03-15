@@ -129,13 +129,13 @@ void System_SDL2::init(const char *title, int w, int h, bool fullscreen, bool wi
 			if (SDL_IsGameController(i)) {
 				_controller = SDL_GameControllerOpen(i);
 				if (_controller) {
-					fprintf(stdout, "Using controller '%s'\n", SDL_GameControllerName(_controller));
+					//fprintf(stdout, "Using controller '%s'\n", SDL_GameControllerName(_controller));
 					break;
 				}
 			}
 			_joystick = SDL_JoystickOpen(i);
 			if (_joystick) {
-				fprintf(stdout, "Using joystick '%s'", SDL_JoystickName(_joystick));
+				//fprintf(stdout, "Using joystick '%s'", SDL_JoystickName(_joystick));
 				break;
 			}else{
 				fprintf(stdout, "Error joystick '%s'", SDL_GetError());
