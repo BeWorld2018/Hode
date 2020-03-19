@@ -752,7 +752,7 @@ void System_SDL2::prepareScaledGfx(const char *caption, bool fullscreen, bool wi
 		SDL_FreeSurface(icon);
 	}
 	#ifdef __MORPHOS__
-	_renderer = SDL_CreateRenderer(_window, -1, SDL_RENDERER_SOFTWARE);
+	_renderer = SDL_CreateRenderer(_window, -1, 0);
 	#else
 	_renderer = SDL_CreateRenderer(_window, -1, SDL_RENDERER_ACCELERATED);
 	#endif
