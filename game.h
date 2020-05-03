@@ -97,6 +97,7 @@ struct Game {
 	bool _loadingScreenEnabled;
 
 	SetupConfig _setupConfig;
+	bool _playDemo;
 	bool _resumeGame;
 
 	LvlObject *_screenLvlObjectsList[kMaxScreens]; // LvlObject linked list for each screen
@@ -257,6 +258,7 @@ struct Game {
 	void playSound(int num, LvlObject *ptr, int a, int b);
 	void removeSound(LvlObject *ptr);
 	void setupBackgroundBitmap();
+	void addToSpriteList(Sprite *spr);
 	void addToSpriteList(LvlObject *ptr);
 	int16_t calcScreenMaskDy(int16_t xPos, int16_t yPos, int num);
 	void setupScreenPosTable(uint8_t num);
@@ -289,9 +291,9 @@ struct Game {
 	void removeLvlObject2(LvlObject *o);
 	void setAndySprite(int num);
 	void setupAndyLvlObject();
-	void updateScreenHelper(int num);
+	void setupScreenLvlObjects(int num);
 	void resetDisplay();
-	void updateScreen(uint8_t num);
+	void setupScreen(uint8_t num);
 	void resetScreen();
 	void restartLevel();
 	void playAndyFallingCutscene(int type);
@@ -376,7 +378,7 @@ struct Game {
 
 	// level1_rock.cpp
 	int objectUpdate_rock_case0(LvlObject *o);
-	void objectUpdate_rock_helper(LvlObject *ptr, uint8_t *p);
+	void objectUpdate_rockShadow(LvlObject *ptr, uint8_t *p);
 	bool plasmaCannonHit(LvlObject *ptr);
 	int objectUpdate_rock_case1(LvlObject *o);
 	int objectUpdate_rock_case2(LvlObject *o);
@@ -464,7 +466,7 @@ struct Game {
 	void mstOp68_addMonsterGroup(_Task *t, const uint8_t *p, int a, int b, int c, int d);
 	int mstTaskSetActionDirection(_Task *t, int num, int value);
 
-	// _Task list
+	// Task list
 	_Task *findFreeTask();
 	_Task *createTask(const uint8_t *codeData);
 	void updateTask(_Task *t, int num, const uint8_t *codeData);
@@ -472,14 +474,14 @@ struct Game {
 	void removeTask(_Task **_TasksList, _Task *t);
 	void appendTask(_Task **_TasksList, _Task *t);
 
-	// _Task storage
+	// Task storage
 	int getTaskVar(_Task *t, int index, int type) const;
 	void setTaskVar(_Task *t, int index, int type, int value);
 	int getTaskAndyVar(int index, _Task *t) const;
 	int getTaskOtherVar(int index, _Task *t) const;
 	int getTaskFlag(_Task *t, int index, int type) const;
 
-	// _Task.run functions
+	// Task.run functions
 	int mstTask_main(_Task *t);
 	int mstTask_wait1(_Task *t);
 	int mstTask_wait2(_Task *t);

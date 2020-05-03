@@ -3,7 +3,12 @@
  * Copyright (C) 2009-2011 Gregory Montoir (cyx@users.sourceforge.net)
  */
 
+#if !defined(PSP) && !defined(WII)
 #include <SDL.h>
+#endif
+#if defined(WII)
+#include <fat.h>
+#endif
 #include <getopt.h>
 #include <sys/stat.h>
 
@@ -21,7 +26,7 @@
 #ifdef __MORPHOS__
 #include <unistd.h>
 unsigned long __stack = 2000000;
-__attribute__ ((section(".text"))) UBYTE VString[] = "$VER: Hode 0.2.8 (30.01.2020) port by BeWorld\r\n";
+__attribute__ ((section(".text"))) UBYTE VString[] = "$VER: Hode 0.2.8 (15.03.2020) port by BeWorld\r\n";
 #endif
 
 static const char *_title = "Heart of Darkness";
@@ -37,8 +42,8 @@ static const char *_usage =
 	"  --checkpoint=NUM  Start at checkpoint NUM\n"
 ;
 
-static bool _fullscreen = true;
-static bool _widescreen = true;
+static bool _fullscreen = false;
+static bool _widescreen = false;
 
 static const bool _runBenchmark = false;
 static bool _runMenu = true;
@@ -57,7 +62,6 @@ static void mixAudio(void *userdata, int16_t *buf, int len) {
 
 static void setupAudio(Game *g) {
 	g->_mix._lock = lockAudio;
-	g->_mix.init(g_system->getOutputSampleRate());
 	AudioCallback cb;
 	cb.proc = mixAudio;
 	cb.userdata = g;
@@ -68,6 +72,7 @@ static const char *_defaultDataPath = "PROGDIR:DATA";
 static const char *_defaultSavePath = "PROGDIR:DATA";
 #else
 static const char *_defaultDataPath = ".";
+
 static const char *_defaultSavePath = ".";
 #endif
 static const char *_levelNames[] = {
@@ -137,6 +142,23 @@ int main(int argc, char *argv[]) {
 	g_debugMask = 0; //kDebug_GAME | kDebug_RESOURCE | kDebug_SOUND | kDebug_MONSTER;
 	int cheats = 0;
 
+#ifdef WII
+	fatInitDefault();
+	static const char *pathsWII[] = {
+		"sd:/hode",
+		"usb:/hode",
+		0
+	};
+	for (int i = 0; pathsWII[i]; ++i) {
+		struct stat st;
+		if (stat(pathsWII[i], &st) == 0 && S_ISDIR(st.st_mode)) {
+			dataPath = strdup(pathsWII[i]);
+			savePath = strdup(pathsWII[i]);
+			break;
+		}
+	}
+#else
+#if !defined(PSP)
 	if (argc == 2) {
 		// data path as the only command line argument
 		struct stat st;
@@ -194,6 +216,8 @@ int main(int argc, char *argv[]) {
 			return -1;
 		}
 	}
+#endif
+#endif
 	Game *g = new Game(dataPath ? dataPath : _defaultDataPath, savePath ? savePath : _defaultSavePath, cheats);
 	ini_parse(_configIni, handleConfigIni, g);
 	if (_runBenchmark) {
@@ -207,6 +231,7 @@ int main(int argc, char *argv[]) {
 	g->loadSetupCfg(resume);
 	bool runGame = true;
 	g->_video->init(isPsx);
+	g->displayLoadingScreen();
 	if (_runMenu && resume && !isPsx) {
 		Menu *m = new Menu(g, g->_paf, g->_res, g->_video);
 		runGame = m->mainLoop();
@@ -215,21 +240,28 @@ int main(int argc, char *argv[]) {
 	if (runGame && !g_system->inp.quit) {
 		bool levelChanged = false;
 		do {
+			g->displayLoadingScreen();
 			g->mainLoop(level, checkpoint, levelChanged);
 			// do not save progress when game is started from a specific level/checkpoint
 			if (resume) {
 				g->saveSetupCfg();
 			}
-			level += 1;
+			if (g->_res->_isDemo) {
+				break;
+			}
+			level = g->_currentLevel + 1;
 			checkpoint = 0;
 			levelChanged = true;
 		} while (!g_system->inp.quit && level < kLvl_test);
 	}
 	g_system->stopAudio();
-	g->_mix.fini();
 	g_system->destroy();
 	delete g;
 	free(dataPath);
 	free(savePath);
+#ifdef WII
+	fatUnmount("sd:/");
+	fatUnmount("usb:/");
+#endif
 	return 0;
 }

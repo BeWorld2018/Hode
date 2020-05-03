@@ -52,7 +52,6 @@ struct System_SDL2 : System {
 	int _keyMappingsCount;
 	AudioCallback _audioCb;
 	uint8_t _gammaLut[256];
-	
 	SDL_GameController *_controller;
 	SDL_Joystick *_joystick;
 
@@ -75,7 +74,6 @@ struct System_SDL2 : System {
 
 	virtual void startAudio(AudioCallback callback);
 	virtual void stopAudio();
-	virtual uint32_t getOutputSampleRate();
 	virtual void lockAudio();
 	virtual void unlockAudio();
 	virtual AudioCallback setAudioCallback(AudioCallback callback);
@@ -88,6 +86,11 @@ struct System_SDL2 : System {
 
 static System_SDL2 system_sdl2;
 System *const g_system = &system_sdl2;
+
+void System_fatalError(const char *s) {
+	SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Heart of Darkness", s, system_sdl2._window);
+	exit(-1);
+}
 
 System_SDL2::System_SDL2() :
 	_offscreenLut(0), _offscreenRgb(0),
@@ -121,24 +124,23 @@ void System_SDL2::init(const char *title, int w, int h, bool fullscreen, bool wi
 	prepareScaledGfx(title, fullscreen, widescreen, yuv);
 	_joystick = 0;
 	_controller = 0;
-	
-    const int count = SDL_NumJoysticks();
+	const int count = SDL_NumJoysticks();
 	if (count > 0) {
 		SDL_GameControllerAddMappingsFromFile("gamecontrollerdb.txt");
 		for (int i = 0; i < count; ++i) {
 			if (SDL_IsGameController(i)) {
 				_controller = SDL_GameControllerOpen(i);
 				if (_controller) {
-					//fprintf(stdout, "Using controller '%s'\n", SDL_GameControllerName(_controller));
+					fprintf(stdout, "Using controller '%s'\n", SDL_GameControllerName(_controller));
 					break;
 				}
 			}
 			_joystick = SDL_JoystickOpen(i);
 			if (_joystick) {
-				//fprintf(stdout, "Using joystick '%s'", SDL_JoystickName(_joystick));
+				#ifndef __MORPHOS__
+				fprintf(stdout, "Using joystick '%s'\n", SDL_JoystickName(_joystick));
+				#endif
 				break;
-			}else{
-				fprintf(stdout, "Error joystick '%s'", SDL_GetError());
 			}
 		}
 	}
@@ -330,10 +332,14 @@ void System_SDL2::setPalette(const uint8_t *pal, int n, int depth) {
 
 void System_SDL2::copyRect(int x, int y, int w, int h, const uint8_t *buf, int pitch) {
 	assert(x >= 0 && x + w <= _screenW && y >= 0 && y + h <= _screenH);
-	for (int i = 0; i < h; ++i) {
-		memcpy(_offscreenLut + y * _screenW + x, buf, w);
-		buf += pitch;
-		++y;
+	if (w == pitch && w == _screenW) {
+		memcpy(_offscreenLut + y * _screenW + x, buf, w * h);
+	} else {
+		for (int i = 0; i < h; ++i) {
+			memcpy(_offscreenLut + y * _screenW + x, buf, w);
+			buf += pitch;
+			++y;
+		}
 	}
 }
 
@@ -345,9 +351,13 @@ void System_SDL2::copyYuv(int w, int h, const uint8_t *y, int ypitch, const uint
 
 void System_SDL2::fillRect(int x, int y, int w, int h, uint8_t color) {
 	assert(x >= 0 && x + w <= _screenW && y >= 0 && y + h <= _screenH);
-	for (int i = 0; i < h; ++i) {
-		memset(_offscreenLut + y * _screenW + x, color, w);
-		++y;
+	if (w == _screenW) {
+		memset(_offscreenLut + y * _screenW + x, color, w * h);
+	} else {
+		for (int i = 0; i < h; ++i) {
+			memset(_offscreenLut + y * _screenW + x, color, w);
+			++y;
+		}
 	}
 }
 
@@ -436,13 +446,27 @@ void System_SDL2::updateScreen(bool drawWidescreen) {
 
 void System_SDL2::processEvents() {
 	SDL_Event ev;
-
 	pad.prevMask = pad.mask;
 	while (SDL_PollEvent(&ev)) {
 		switch (ev.type) {
 		case SDL_KEYUP:
 			if (ev.key.keysym.sym == SDLK_s) {
 				inp.screenshot = true;
+			}
+			break;
+		case SDL_JOYDEVICEADDED:
+			if (!_joystick) {
+				_joystick = SDL_JoystickOpen(ev.jdevice.which);
+				if (_joystick) {
+					fprintf(stdout, "Using joystick '%s'\n", SDL_JoystickName(_joystick));
+				}
+			}
+			break;
+		case SDL_JOYDEVICEREMOVED:
+			if (_joystick == SDL_JoystickFromInstanceID(ev.jdevice.which)) {
+				fprintf(stdout, "Removed joystick '%s'\n", SDL_JoystickName(_joystick));
+				SDL_JoystickClose(_joystick);
+				_joystick = 0;
 			}
 			break;
 		case SDL_JOYHATMOTION:
@@ -510,7 +534,29 @@ void System_SDL2::processEvents() {
 						pad.mask &= ~SYS_INP_SHOOT;
 					}
 					break;
+				case 3:
+					if (pressed) {
+						pad.mask |= SYS_INP_SHOOT | SYS_INP_RUN;
+					} else {
+						pad.mask &= ~(SYS_INP_SHOOT | SYS_INP_RUN);
+					}
+					break;
 				}
+			}
+			break;
+		case SDL_CONTROLLERDEVICEADDED:
+			if (!_controller) {
+				_controller = SDL_GameControllerOpen(ev.cdevice.which);
+				if (_controller) {
+					fprintf(stdout, "Using controller '%s'\n", SDL_GameControllerName(_controller));
+				}
+			}
+			break;
+		case SDL_CONTROLLERDEVICEREMOVED:
+			if (_controller == SDL_GameControllerFromInstanceID(ev.cdevice.which)) {
+				fprintf(stdout, "Removed controller '%s'\n", SDL_GameControllerName(_controller));
+				SDL_GameControllerClose(_controller);
+				_controller = 0;
 			}
 			break;
 		case SDL_CONTROLLERAXISMOTION:
@@ -572,6 +618,11 @@ void System_SDL2::processEvents() {
 					}
 					break;
 				case SDL_CONTROLLER_BUTTON_Y:
+					if (pressed) {
+						pad.mask |= SYS_INP_SHOOT | SYS_INP_RUN;
+					} else {
+						pad.mask &= ~(SYS_INP_SHOOT | SYS_INP_RUN);
+					}
 					break;
 				case SDL_CONTROLLER_BUTTON_BACK:
 				case SDL_CONTROLLER_BUTTON_START:
@@ -611,7 +662,6 @@ void System_SDL2::processEvents() {
 		case SDL_QUIT:
 			inp.quit = true;
 			break;
-
 		}
 	}
 	updateKeys(&inp);
@@ -626,9 +676,8 @@ uint32_t System_SDL2::getTimeStamp() {
 }
 
 static void mixAudioS16(void *param, uint8_t *buf, int len) {
-	System_SDL2 *stub = (System_SDL2 *)param;
 	memset(buf, 0, len);
-	stub->_audioCb.proc(stub->_audioCb.userdata, (int16_t *)buf, len / 2);
+	system_sdl2._audioCb.proc(system_sdl2._audioCb.userdata, (int16_t *)buf, len / 2);
 }
 
 void System_SDL2::startAudio(AudioCallback callback) {
@@ -650,10 +699,6 @@ void System_SDL2::startAudio(AudioCallback callback) {
 
 void System_SDL2::stopAudio() {
 	SDL_CloseAudio();
-}
-
-uint32_t System_SDL2::getOutputSampleRate() {
-	return kAudioHz;
 }
 
 void System_SDL2::lockAudio() {
@@ -705,17 +750,17 @@ void System_SDL2::setupDefaultKeyMappings() {
 
 	addKeyMapping(SDL_SCANCODE_RETURN,   SYS_INP_JUMP);
 	addKeyMapping(SDL_SCANCODE_LCTRL,    SYS_INP_RUN);
-	addKeyMapping(SDL_SCANCODE_F,    SYS_INP_RUN);
-//	addKeyMapping(SDL_SCANCODE_LALT,        SYS_INP_JUMP);
+	addKeyMapping(SDL_SCANCODE_F,        SYS_INP_RUN);
+	addKeyMapping(SDL_SCANCODE_LALT,     SYS_INP_JUMP);
 	addKeyMapping(SDL_SCANCODE_G,        SYS_INP_JUMP);
 	addKeyMapping(SDL_SCANCODE_LSHIFT,   SYS_INP_SHOOT);
 	addKeyMapping(SDL_SCANCODE_H,        SYS_INP_SHOOT);
 	addKeyMapping(SDL_SCANCODE_D,        SYS_INP_SHOOT | SYS_INP_RUN);
 	addKeyMapping(SDL_SCANCODE_SPACE,    SYS_INP_SHOOT | SYS_INP_RUN);
-
-#ifdef __MORPHOS__
-// add somes keys
 	addKeyMapping(SDL_SCANCODE_ESCAPE,   SYS_INP_ESC);
+	
+	#ifdef __MORPHOS__
+	// add somes keys
 	addKeyMapping(SDL_SCANCODE_RCTRL,    SYS_INP_RUN);
     addKeyMapping(SDL_SCANCODE_RSHIFT,   SYS_INP_SHOOT);
 	#endif
@@ -757,7 +802,7 @@ void System_SDL2::prepareScaledGfx(const char *caption, bool fullscreen, bool wi
 	_renderer = SDL_CreateRenderer(_window, -1, SDL_RENDERER_ACCELERATED);
 	#endif
 	SDL_RenderSetLogicalSize(_renderer, windowW, windowH);
-	SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1");
+	SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, (_scaler == &scaler_nearest) ? "0" : "1");
 
 	const int pixelFormat = yuv ? SDL_PIXELFORMAT_RGBA8888 : SDL_PIXELFORMAT_RGB888;
 	_texture = SDL_CreateTexture(_renderer, pixelFormat, SDL_TEXTUREACCESS_STREAMING, _texW, _texH);
